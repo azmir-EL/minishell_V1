@@ -14,6 +14,7 @@
 # define MINISHELL_H
 
 # include "../libft/libft.h"
+#include  "../parsing/parsing.h"
 
 typedef struct s_context
 {
@@ -33,16 +34,16 @@ typedef struct s_shell
 }t_shell;
 
 
-typedef struct s_cmd
-{
-    char **args;
-    char *infile;
-    char *outfile;
-    int heredoc;
-    int append;
-    int pipe_to_next;
-    struct s_cmd *next;
-} t_cmd;
+// typedef struct s_cmd
+// {
+//     char **args;
+//     char *infile;
+//     char *outfile;
+//     int heredoc;
+//     int append;
+//     int pipe_to_next;
+//     struct s_cmd *next;
+// } t_cmd;
 
 char  *extract_args(char *args,char opt);
 void join_key(t_shell **shell ,char *args);
@@ -56,7 +57,7 @@ char *join_key_with_value(t_shell *shell);
 int is_valid_export_syntax(char *args);
 char  *extract_keys(char *args,char opt);
 void	add_node(t_shell **shell,char **env,char *args);
-void handle_redir(t_cmd *cmd, char **tokens);
+void handle_redir1(t_cmd *cmd, char **tokens);
 int is_redir(char *tokens);
 int     execute_commands(t_cmd *cmd,t_context *ctx);
 void    redirection(t_cmd *cmd);
@@ -73,6 +74,6 @@ void	free_split(char **split_path);
 int		open_file(char *file, int mode);
 char	*get_next_line(int fd);
 void	error(int mode);
-void	exec(char *av, char **env);
+void	exec(char **cmd, char **env);
 #endif
 

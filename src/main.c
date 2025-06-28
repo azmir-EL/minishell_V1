@@ -12,107 +12,78 @@
 
 
 #include "../include/minishell.h"
+#include <stdio.h>
 
-t_cmd *create_commands(char **tokens)
+// void print_command(t_cmd *cmd)
+// {
+//     int i;
+//     while (cmd)
+//     {
+//         printf("Command: ");
+//         for (i = 0; cmd->args && cmd->args[i]; i++)
+//             printf("[%s] ", cmd->args[i]);
+//         printf("\n");
+//         cmd = cmd->next;
+//     }
+// }
+
+t_cmd  *create_command(char **cmd)
 {
-    t_cmd *node = malloc(sizeof(t_cmd));
-    if (!node)
-        return NULL;
-        
-    // Count non-redirection arguments
-    int arg_count = 0;
-    int i = 0;
-    
-    while (tokens[i])
-    {
-        if (is_redir(tokens[i]))
-        {
-            i += 2;
-            continue;
-        }
-        arg_count++;
-        i++;
-    }
-    
-    // Allocate args array
-    node->args = malloc(sizeof(char *) * (arg_count + 1));
-    if (!node->args) 
-    {
-        free(node);
-        return NULL;
-    }
-    i = 0;
-    int j = 0;
-    while (tokens[i]) 
-    {
-        if (is_redir(tokens[i])) 
-        {
-            i += 2;
-            continue;
-        }
-        node->args[j++] = ft_strdup(tokens[i++]);
-    }
-    node->args[j] = NULL;
-    node->append = 0;
-    node->outfile = NULL;
-    node->infile = NULL;
-    node->next = NULL;
-    return node;
+	t_cmd *node = malloc(sizeof(t_cmd));
+	
+	if (node == NULL)
+		return (NULL);
+	node->args = cmd;
+	node->next = NULL;
+	return (node);
 }
 
-void print_command(t_cmd *cmd)
+t_cmd *parse_commands(char *args)
 {
-    if (!cmd || !cmd->args)
-        return;
-        
-    printf("Command: ");
-    for (int i = 0; cmd->args[i]; i++)
-        printf("%s ", cmd->args[i]);
-    printf("\n");
-    
-    if (cmd->infile)
-        printf("Input redirection: < %s\n", cmd->infile);
-    if (cmd->outfile)
-    {
-        printf("Output redirection: %s %s\n",cmd->append ? ">>" : ">", cmd->outfile);
-    }
+	int i;
+	char **split_pip;
+	t_cmd *current = NULL;
+	t_cmd *head = NULL;
+	t_cmd *node;
+
+	i = 0;
+	split_pip = ft_split(args,'|');
+	while (split_pip[i])
+	{
+		node = create_command(&split_pip[i]);
+		if (!head)
+			head = node;
+		else
+			current->next = node;
+		current = node;
+		i++;
+	}
+	return (head);
 }
 
-int main(int argc, char **argv, char **env)
+int main(int argc,char **argv,char **env)
 {
-    (void)argc;
-    (void)argv;
-    
-    
-    
-    // Test case with multiple output redirections
-    char *tokens[] = {"cat","<","file",">","outfile",NULL};
-    
-    t_cmd *cmd = create_commands(tokens);
-    t_context *ctx = malloc(sizeof(t_context));
-    // ctx = malloc(sizeof(t_context));
+	(void)argc;
+	(void)argv;
+	
+
+	t_cmd *cmd;
+    t_context *ctx;
+	char *input;
+
+	// char **args;
+	cmd = malloc(sizeof(t_cmd));
+    ctx = malloc (sizeof(t_context));
     ctx->env = env;
-    if (!cmd)
-    {
-        printf("Failed to create command\n");
-        return 1;
-    }
-    // Handle redirections BEFORE printing so they show up correctly
-    handle_redir(cmd, tokens);
-    print_command(cmd);
-    
-    
-    
-    // Apply redirections before executing
-    // redirection(cmd);
-    
-    // int result=
-    printf("hmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm\n");
-    int status =  execute_commands(cmd,ctx);
-
-
-    //free_command(cmd); 
-    printf("Command executed with status: %d\n", status);
-    
-    return 0;
+	while (1)
+	{
+		input = readline("> ");
+		if (!input)
+			break;
+		if (*input)
+			add_history(input);
+        cmd = parse_input(input);
+		// print_command(cmd);
+		execute_commands(cmd,ctx);
+	}
 }

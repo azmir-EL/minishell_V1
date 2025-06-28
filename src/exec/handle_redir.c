@@ -66,7 +66,7 @@ int is_redir(char *tokens)
     return (!ft_strcmp(tokens,">") || !ft_strcmp(tokens,">>") || !ft_strcmp(tokens,"<") || !ft_strcmp(tokens,"<<"));
 }
 
-void handle_redir(t_cmd *cmd, char **tokens)
+void handle_redir1(t_cmd *cmd, char **tokens)
 {
     int i;
     i = 0;
