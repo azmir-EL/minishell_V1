@@ -34,10 +34,10 @@ void child_process(t_cmd *tmp,t_context *ctx)
                 close(ctx->fdpipe[0]);
         	    close(ctx->fdpipe[1]);
         }
-        // if (tmp->outfile || tmp->infile)
-        //     redirection(tmp);
-        print_execute(tmp);
+        if (redirection(tmp) < 0)
+            exit(0);
         exec(tmp->args,ctx->env);
+        exit(0);
 }
 
 void parent_process(t_cmd *tmp , t_context *ctx)
@@ -74,7 +74,7 @@ int execute_commands(t_cmd *cmd,t_context *ctx)
     return (status);
 }
 
-
+// test code 
 
 // void exec_command(char **args, char **env) {
 //     char *full_path;
