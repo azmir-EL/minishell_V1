@@ -12,62 +12,72 @@
 
 #include "../../include/minishell.h"
 
-void print_execute(t_cmd *cmd) {
-    // TEMPORARY DEBUG
-    // fprintf(stderr, "Executing: %s\n", cmd->path);
-    for (int i = 0; cmd->args[i]; i++) {
-        fprintf(stderr, "  argv[%d] = %s\n", i, cmd->args[i]);
-    }
-}
 
-void child_process(t_cmd *tmp,t_context *ctx)
+void child_process(t_cmd *cmd,t_context *ctx,t_shell **shell)
 {
-    
+        int save_outpute;     
+       
         if (ctx->prev_pipe != -1)
         {
                 dup2(ctx->prev_pipe,STDIN_FILENO);
                 close(ctx->prev_pipe);
     	}
-        if (tmp->next)
+        if (cmd->next)
         {
-                dup2(ctx->fdpipe[1],STDOUT_FILENO);
                 close(ctx->fdpipe[0]);
+                dup2(ctx->fdpipe[1],STDOUT_FILENO);
         	    close(ctx->fdpipe[1]);
         }
-        if (redirection(tmp) < 0)
-            exit(0);
-        exec(tmp->args,ctx->env);
-        exit(0);
+        if (!ft_strcmp(cmd->args[0],"export"))
+        {
+            save_outpute = dup(STDOUT_FILENO);
+            if (cmd->infile || cmd->outfile)
+            {
+                redirection(cmd);
+            }
+		 	ft_export1(shell,ctx->env,&cmd->args[0],cmd);
+            dup2(save_outpute,STDOUT_FILENO);
+            close(save_outpute);
+        }
+        else
+        {
+            save_outpute = dup(STDOUT_FILENO);
+            if (cmd->infile || cmd->outfile)
+            {
+                redirection(cmd);
+            }
+            exec(cmd->args,ctx->env);
+            dup2(save_outpute,STDOUT_FILENO);
+            close(save_outpute);
+        }
 }
 
-void parent_process(t_cmd *tmp , t_context *ctx)
+void parent_process(t_cmd *cmd , t_context *ctx)
 {
     ctx->last_pid = ctx->pids;
     if (ctx->prev_pipe != -1)
         close(ctx->prev_pipe);
-    if (tmp->next)
+    if (cmd->next)
          close(ctx->fdpipe[1]);
 }
 
-int execute_commands(t_cmd *cmd,t_context *ctx)
+int execute_commands(t_cmd *cmd,t_context *ctx,t_shell **shell)
 {
-    t_cmd *tmp;
     int status;
 
     ctx->prev_pipe = -1;
-    tmp = cmd;
 
-    while (tmp)
+    while (cmd)
     {
-        if (tmp->next)
+        if (cmd->next)
             pipe(ctx->fdpipe);
         ctx->pids = fork();
         if (ctx->pids == 0)
-            child_process(tmp,ctx);
+            child_process(cmd,ctx,shell);
         else
-            parent_process(tmp,ctx);
+            parent_process(cmd,ctx);
         ctx->prev_pipe = ctx->fdpipe[0];
-        tmp = tmp->next;
+        cmd = cmd->next;
     }
     waitpid(ctx->last_pid,&status,0);
     while (wait(NULL) > 0);
@@ -132,7 +142,7 @@ int execute_commands(t_cmd *cmd,t_context *ctx)
 //     }
 // }
 
-// void child_process(t_cmd *tmp, t_context *ctx) {
+// void child_process(t_cmd *cmd, t_context *ctx) {
 //     // Handle input redirection from previous command
 //     if (ctx->prev_pipe != -1) {
 //         dup2(ctx->prev_pipe, STDIN_FILENO);
@@ -140,24 +150,24 @@ int execute_commands(t_cmd *cmd,t_context *ctx)
 //     }
     
 //     // Handle output redirection to next command
-//     if (tmp->next) {
+//     if (cmd->next) {
 //         close(ctx->fdpipe[0]);  // Close read end first
 //         dup2(ctx->fdpipe[1], STDOUT_FILENO);
 //         close(ctx->fdpipe[1]);
 //     }
     
 //     // Handle file redirections (if implemented)
-//     // if (tmp->infile || tmp->outfile)
-//     //     handle_redirection(tmp);
+//     // if (cmd->infile || cmd->outfile)
+//     //     handle_redirection(cmd);
     
 //     // Execute the command
-//     exec_command(tmp->args, ctx->env);
+//     exec_command(cmd->args, ctx->env);
     
 //     // If we get here, exec failed
 //     exit(EXIT_FAILURE);
 // }
 // int execute_commands(t_cmd *cmd, t_context *ctx) {
-//     t_cmd *tmp = cmd;
+//     t_cmd *cmd = cmd;
 //     int status;
 //     int last_status = 0;
 
@@ -175,8 +185,8 @@ int execute_commands(t_cmd *cmd,t_context *ctx)
 //         return -1;
 
 //     int i = 0;
-//     while (tmp) {
-//         if (tmp->next) 
+//     while (cmd) {
+//         if (cmd->next) 
 //         {
 //             if (pipe(ctx->fdpipe))
 //             {
@@ -191,7 +201,7 @@ int execute_commands(t_cmd *cmd,t_context *ctx)
 //         pid_t pid = fork();
 //         if (pid == 0) {
 //             // Child process
-//             child_process(tmp, ctx);
+//             child_process(cmd, ctx);
 //         } else if (pid < 0) {
 //             perror("fork");
 //         } else {
@@ -200,7 +210,7 @@ int execute_commands(t_cmd *cmd,t_context *ctx)
 //             parent_process(ctx);
 //         }
         
-//         tmp = tmp->next;
+//         cmd = cmd->next;
 //     }
 
 //     // Wait for all child processes

@@ -45,6 +45,7 @@ typedef struct s_cmd
     char **args;
     char *infile;
     char *outfile;
+    int fd;
     int append;
     int heredoc;
     int pipe_to_next;

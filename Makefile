@@ -18,6 +18,7 @@ LIBFT_LIB = $(LIBFT_DIR)/libft.a
 PARSE_LIB = $(PARSE_DIR)/parsing.a
 
 SRCS = \
+	test_export.c\
 	$(SRC_DIR)/main.c \
 	$(EXEC_DIR)/utils1.c \
 	$(EXEC_DIR)/utils2.c \
@@ -30,11 +31,10 @@ SRCS = \
 	$(BUILTINS)/env.c \
 	$(BUILTINS)/pwd.c \
 	$(BUILTINS)/unset.c \
-	$(EXPORT_DIR)/export.c \
-	$(EXPORT_DIR)/tools1.c \
-	$(EXPORT_DIR)/tools2.c \
-	$(EXPORT_DIR)/tools3.c \
-	$(EXPORT_DIR)/tools4.c
+	# $(EXPORT_DIR)/tools1.c \
+	# $(EXPORT_DIR)/tools2.c \
+	# $(EXPORT_DIR)/tools3.c \
+	# $(EXPORT_DIR)/tools4.c
 
 OBJS = $(SRCS:.c=.o)
 
